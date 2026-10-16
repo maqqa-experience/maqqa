@@ -1,9 +1,11 @@
 # Project status
 
 **Product:** [Maqqa](https://maqqa.dev) — Model Augmented Quick Qode Assistant  
-**Stage:** public preview / research prototype (`0.1.x`)  
-**Platform focus:** macOS Apple Silicon + local [Ollama](https://ollama.com)  
-**Not yet:** a polished Cursor replacement, multi-OS installer, or cloud backend
+**Stage:** public preview / research prototype (`0.0.x`)  
+**Platform focus:** macOS Apple Silicon + local [Ollama](https://ollama.com); Linux/Windows via Releases  
+**Is:** local agent harness for modest vibe/agent coding (shadow heal, capped context)  
+**Is not:** offline Bolt/Lovable, or “Cursor prompts pointed at Ollama”  
+**Not yet:** polished IDE parity or cloud backend
 
 ## What works today
 

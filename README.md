@@ -14,17 +14,37 @@
 
 **Model Augmented Quick Qode Assistant** — local-first AI code editor: Tauri + Monaco UI, Rust agent engine, [Ollama](https://ollama.com) inference, Tree-sitter indexing, shadow-workspace self-heal.
 
-> **Status:** experimental `0.1.x` preview. Useful as a research / local-agent playground on Apple Silicon. **Not** a drop-in Cursor replacement. See [`docs/STATUS.md`](docs/STATUS.md).
+> **Status:** experimental `0.0.x` preview. Research / local-agent playground (macOS primary; Linux/Windows builds via Releases). **Not** a drop-in Cursor or Bolt replacement. See [`docs/STATUS.md`](docs/STATUS.md).
+
+## What Maqqa is (and isn’t)
+
+**Maqqa is** a **local agent harness** for Ollama coder models (especially Qwen Coder **14B** on 16GB and **30B** on ~24GB). Goal: modest **vibe / agent coding** from an empty or small workspace — multi-file edits that get **checked before Accept** — without the usual local-agent failure modes (tool-call spam, cloud-sized prompts, no verify loop, code that doesn’t compile).
+
+**Maqqa is not** offline Lovable / Bolt / v0. Those are cloud sandboxes + frontier models. A local 14B will not match “one prompt → full production app with live preview.” Same ceiling as every other local 14B stack for that category.
+
+**Also not** “Cline or Cursor pointed at `localhost:11434`.” Those UIs ship prompts and tool schemas tuned for Claude/GPT. Dumping that on a 14B usually fails. Maqqa is built **around** local models instead of treating Ollama as a drop-in backend.
+
+| Bar | Expect |
+|-----|--------|
+| Prompt → deployable full-stack app like Bolt | No — use cloud vibe tools |
+| Local 14B agent that is less broken than cloud-harness-on-Ollama | Yes — that’s the point |
+| 16GB laptop | Yes — **14B reason only**, `ghost_model = ""`, capped `ollama_num_ctx` |
+| 24GB+ | Comfortable **30B** reason (+ optional ghost / embed) |
 
 ## Why this exists
 
-Most agent harnesses are tuned for frontier cloud models. Point the same loops at a **local** coder (even on high-spec Apple Silicon / lots of RAM) and quality drops hard: brittle multi-file edits, weak self-correction, and prompts that assume GPT/Claude-class reasoning.
+Most agent harnesses assume frontier cloud models. Point the same loops at a **local** coder (even on strong Apple Silicon) and quality drops: brittle multi-file edits, weak self-correction, rigid JSON tool calls the model can’t follow, and context that balloons to 30k+ tokens until a laptop crawls or OOMs.
 
-Maqqa started as a place to close that gap — a harness built **around** local Ollama models instead of treating them as a drop-in backend. Dual ghost/reason tiers, shadow-workspace heals, checkpoint repair (including temperature A/B on smaller models), and scenario benches exist so local agents can be measured and improved, not just demoed once on a 70B+ API.
+Maqqa closes that gap with harness choices local models need:
+
+- **Shadow workspace** — edits land in `.vibe/shadow` first; syntax / checkpoint repair (optional **temperature A/B** on &lt;20B) before you Accept  
+- **Context caps** — `ollama_num_ctx` (e.g. 12–14k) so modest agent turns stay in an 8–14k band instead of death-spiraling  
+- **Ghost optional** — inline completions are a separate small model; **disable on tight RAM** (`ghost_model = ""`) so you don’t dual-load 7B+14B  
+- **Scenario & bench CLIs** — measure local agents, don’t only demo them once on a 70B API  
 
 ## Features
 
-- **Ghost completions** — small/fast Ollama model for inline suggestions  
+- **Ghost completions** (optional) — small/fast Ollama model for inline suggestions; leave empty to disable  
 - **Cmd+K / agent edits** — reason model writes through a **shadow workspace**; you Accept  
 - **Self-heal** — syntax + checkpoint repair loops (optional **temperature A/B** on smaller models)  
 - **Workspace index** — Tree-sitter chunks → embeddings → retrieval  
@@ -50,14 +70,25 @@ crates/vibe_ipc       shared IPC types
 
 ### Recommended hardware
 
-| Machine | Reason model (Ollama) |
-|---------|------------------------|
-| MacBook Pro **16GB** RAM | Qwen Coder **14B** (e.g. `Qwen2.5-Coder:14b-instruct-q4_K_M`) |
-| Mac mini **24GB** RAM | Qwen Coder **30B** (e.g. `qwen3-coder:30b`) |
+| Machine | Reason model (Ollama) | Ghost |
+|---------|------------------------|--------|
+| MacBook Pro **16GB** | Qwen Coder **14B** (e.g. `Qwen2.5-Coder:14b-instruct-q4_K_M`) | **Off** — `ghost_model = ""` |
+| Mac mini **24GB** | Qwen Coder **30B** (e.g. `qwen3-coder:30b`) | Optional 7B-class |
 
-Optional ghost (7B-class) + `nomic-embed-text`. **If RAM is tight, disable ghost** — set `ghost_model = ""` so inline completions stay off. Do **not** point ghost at a 14B+ reason model; that makes typing sluggish. Agent / Cmd+K still use `reason_model`. Enable heal temperature A/B on the 14B path (`agent_profile = "small"` / `auto`, or `ollama_heal_ab = true`).
+`24GB` is for **30B comfort**, not a hard floor — **16GB + 14B + ghost off** is a supported path. Cap context with `ollama_num_ctx = 12000` (or similar). Do **not** point ghost at the 14B+ reason model (typing becomes sluggish). On 14B, heal A/B defaults on via `agent_profile = "auto"`; force with `ollama_heal_ab = true`, or turn off with `false` if you want fewer regen passes.
 
-Latency targets (aspirational on strong Apple Silicon): ghost first-token p95 **&lt;100ms**; UI paint after token **&lt;30ms**.
+Example lean laptop config:
+
+```toml
+ghost_model = ""
+reason_model = "Qwen2.5-Coder:14b-instruct-q4_K_M"
+ollama_num_ctx = 12000
+agent_profile = "auto"
+# ollama_heal_ab = false   # optional: fewer heal retries
+# agent_max_turns = 4      # optional: shorter loops
+```
+
+Latency targets (aspirational when ghost is enabled): first-token p95 **&lt;100ms**; UI paint after token **&lt;30ms**.
 
 ## Quick start
 
@@ -66,13 +97,14 @@ Latency targets (aspirational on strong Apple Silicon): ghost first-token p95 **
 brew install ollama   # or https://ollama.com
 ollama serve
 
-ollama pull qwen2.5-coder:7b-instruct-q4_K_M
-ollama pull Qwen2.5-Coder:14b-instruct-q4_K_M   # or another reason model you can fit
+ollama pull Qwen2.5-Coder:14b-instruct-q4_K_M   # or 30b if you have ~24GB+
 ollama pull nomic-embed-text
+# optional ghost (skip on 16GB):
+# ollama pull qwen2.5-coder:7b-instruct-q4_K_M
 
 # 2) Config
 cp config.example.toml ~/.vibe/config.toml
-# edit reason_model / ghost_model to match `ollama list`
+# edit reason_model; on 16GB set ghost_model = ""
 
 # 3) Smoke the engine
 cargo test -p vibe_core --lib
