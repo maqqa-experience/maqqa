@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -Dwarnings
+
+jobs:
+  rust:
+    name: Rust (fmt, clippy, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            apps/desktop/src-tauri
+
+      # Desktop Tauri crate needs system deps on Linux; core + ipc are enough for PR signal.
+      - name: cargo fmt
+        run: cargo fmt --all -- --check
+
+      # Allow a few style lints that need larger refactors in agent.rs; still deny the rest.
+      - name: clippy vibe_core + vibe_ipc
+        run: >
+          cargo clippy -p vibe_core -p vibe_ipc --all-targets --
+          -D warnings
+          -A clippy::too_many_arguments
+          -A clippy::needless_range_loop
+          -A clippy::single_match
+          -A clippy::field_reassign_with_default
+
+
+      - name: test vibe_core + vibe_ipc
+        run: |
+          cargo test -p vibe_core --lib
+          cargo test -p vibe_ipc
+
+      - name: scenario binary builds
+        run: cargo build -p vibe_core --bin vibe_scenario
+
+  desktop-js:
+    name: Desktop (tsc / vite build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/desktop
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Typecheck + Vite build
+        run: npm run build

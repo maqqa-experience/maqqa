@@ -1,0 +1,2 @@
+# Soften argument-count pressure on the agent / scenario helpers until refactored.
+too-many-arguments-threshold = 12

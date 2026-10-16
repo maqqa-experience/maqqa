@@ -1,0 +1,5 @@
+- Product for worldwide remote B2B/contractors.
+- Prefer Python package `jobs_aggregator`.
+- Do not invent unrelated apps.
+- `python -m jobs_aggregator -h` must work after `pip install -e .` without crashing on import.
+- Lazy-import optional deps (e.g. requests) inside functions that need them — not at module top-level for CLI help.

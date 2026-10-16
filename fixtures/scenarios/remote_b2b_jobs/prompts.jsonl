@@ -1,0 +1,100 @@
+{"id": 1, "phase": "scaffold", "prompt": "Create a new Python package `jobs_aggregator` for a remote B2B contractor job search tool.\nLayout:\n- jobs_aggregator/__init__.py\n- jobs_aggregator/cli.py (argparse entry)\n- jobs_aggregator/models.py (Job dataclass/pydantic-free typed dicts OK)\n- pyproject.toml or requirements.txt\n- README.md describing the product for worldwide remote B2B contractors\nDo not scrape yet — scaffold only. CLI should print --help.", "checkpoint": null}
+{"id": 2, "phase": "scaffold", "prompt": "Add a console script entry so `python -m jobs_aggregator` and optionally `jobs-agg` run the CLI.\nEnsure `python -m jobs_aggregator -h` works from the repo root.", "checkpoint": null}
+{"id": 3, "phase": "scaffold", "prompt": "In models.py define a Job record with at least: id, title, company, url, source, location,\nis_remote, employment_type (contract|permanent|unknown), languages (list[str]),\nhourly_rate_min, hourly_rate_max, currency, description, summary, posted_at, last_checked_at,\nis_open (bool|None), open_check_notes. Use dataclasses.", "checkpoint": null}
+{"id": 4, "phase": "scaffold", "prompt": "Add jobs_aggregator/config.py with defaults: user_agent, request timeout, max_results,\ndefault currency USD, supported languages list including php, python, javascript, typescript,\nrust, go, java, ruby, csharp.", "checkpoint": null}
+{"id": 5, "phase": "scaffold", "prompt": "Add jobs_aggregator/storage.py with JSONL save/load for Job lists under .jobs_cache/results.jsonl.\nInclude atomic write.", "checkpoint": null}
+{"id": 6, "phase": "scaffold", "prompt": "Add empty package jobs_aggregator/sources/ with __init__.py and a BaseSource ABC:\nfetch(self, query: SearchQuery) -> list[Job]. Define SearchQuery in models.py.", "checkpoint": null}
+{"id": 7, "phase": "scaffold", "prompt": "Define SearchQuery with: keywords, remote_only, languages, employment_types,\nhourly_rate_min, hourly_rate_max, currency, countries (optional), limit.", "checkpoint": null}
+{"id": 8, "phase": "scaffold", "prompt": "Wire CLI subcommand `init` that creates .jobs_cache/ and writes a sample empty results file.\nDocument it in README.", "checkpoint": null}
+{"id": 9, "phase": "scaffold", "prompt": "Add a Makefile or just document: pip install -e . and python -m jobs_aggregator -h.\nKeep dependencies minimal (requests, beautifulsoup4 optional later).", "checkpoint": null}
+{"id": 10, "phase": "scaffold", "prompt": "Add jobs_aggregator/logging_utils.py with structured stderr logging (level via --verbose).\nCLI --verbose flag.", "checkpoint": "scaffold"}
+{"id": 11, "phase": "filters", "prompt": "Extend CLI with `search` subcommand accepting:\n--keywords, --remote / --remote-only, --lang (repeatable), --type contract|perm|any,\n--rate-min, --rate-max, --currency, --limit. Parse into SearchQuery.", "checkpoint": null}
+{"id": 12, "phase": "filters", "prompt": "Normalize employment type aliases: contract, contractor, freelance, b2b -> contract;\nperm, permanent, full-time, fte -> permanent.", "checkpoint": null}
+{"id": 13, "phase": "filters", "prompt": "Add language alias map: py->python, js->javascript, ts->typescript, php->php, golang->go, c#->csharp.\nCLI --lang should accept aliases.", "checkpoint": null}
+{"id": 14, "phase": "filters", "prompt": "Implement jobs_aggregator/filters.py with apply_filters(jobs, query) enforcing remote_only,\nlanguages intersection, employment_types, and hourly rate window (skip rate filter when job rates unknown\nunless --require-rate is set).", "checkpoint": null}
+{"id": 15, "phase": "filters", "prompt": "Add CLI --require-rate that drops jobs without hourly_rate_min/max when filtering.", "checkpoint": null}
+{"id": 16, "phase": "filters", "prompt": "Add --include-unknown-remote flag (default off when --remote-only): if off, drop jobs where\nis_remote is None under remote_only mode.", "checkpoint": null}
+{"id": 17, "phase": "filters", "prompt": "Add unit tests in tests/test_filters.py covering remote, language, contract/perm, and rate filters\nwith synthetic Job fixtures. Use unittest or pytest.", "checkpoint": null}
+{"id": 18, "phase": "filters", "prompt": "Make tests pass: python -m unittest discover -s tests -v (or pytest). Fix any import path issues.", "checkpoint": null}
+{"id": 19, "phase": "filters", "prompt": "CLI `search` should accept --json and --markdown output formats (stub: print filtered count for now\nif no sources yet).", "checkpoint": null}
+{"id": 20, "phase": "filters", "prompt": "Add jobs_aggregator/query_parse.py to parse a free-text string like\n'remote python contract $80-$120' into SearchQuery fields. Add CLI --query for that shorthand.", "checkpoint": "filters"}
+{"id": 21, "phase": "sources", "prompt": "Implement sources/remoteok.py fetching https://remoteok.com/api (JSON). Map to Job with source=remoteok.\nRespect User-Agent. Handle HTTP errors gracefully.", "checkpoint": null}
+{"id": 22, "phase": "sources", "prompt": "Tag RemoteOK jobs: set is_remote=True; detect languages from tags/description; employment_type\nheuristic from text (contract/freelance vs full-time).", "checkpoint": null}
+{"id": 23, "phase": "sources", "prompt": "Implement sources/remotive.py using Remotive public API if available, else document stub that returns [].\nPrefer real HTTP when the API is reachable.", "checkpoint": null}
+{"id": 24, "phase": "sources", "prompt": "Implement sources/arbeitnow.py or a second free board API. If blocked, implement a clearly marked\nMockSource that loads fixtures/scenarios sample JSON for offline demos.", "checkpoint": null}
+{"id": 25, "phase": "sources", "prompt": "Add sources/registry.py listing enabled sources. CLI --source repeatable filter (default: all enabled).", "checkpoint": null}
+{"id": 26, "phase": "sources", "prompt": "Implement aggregator.py: run selected sources concurrently (ThreadPoolExecutor), merge Job lists,\ndedupe by normalized url and by (company,title) fingerprint.", "checkpoint": null}
+{"id": 27, "phase": "sources", "prompt": "Add URL normalization: strip tracking query params (utm_*, fbclid), lowercase host, remove trailing slash.", "checkpoint": null}
+{"id": 28, "phase": "sources", "prompt": "Wire CLI `search` to actually call aggregator + filters + storage save. Print summary count per source.", "checkpoint": null}
+{"id": 29, "phase": "sources", "prompt": "Add fixtures/sample_jobs.json with 8 synthetic jobs spanning remote/on-site, py/php, contract/perm,\nwith/without rates — used by MockSource and tests.", "checkpoint": null}
+{"id": 30, "phase": "sources", "prompt": "Add MockSource reading fixtures/sample_jobs.json. Enable with --source mock for deterministic runs.", "checkpoint": null}
+{"id": 31, "phase": "sources", "prompt": "Add tests/test_dedupe.py ensuring duplicate urls collapse and fingerprint dedupe works.", "checkpoint": null}
+{"id": 32, "phase": "sources", "prompt": "Add polite rate limiting: sources/http_util.py with session, timeout, retries (3), backoff.", "checkpoint": null}
+{"id": 33, "phase": "sources", "prompt": "Respect robots/terms: add README ethics section — only public APIs / permitted boards; no authenticated scrape.\nAdd --offline that forces mock source only.", "checkpoint": null}
+{"id": 34, "phase": "sources", "prompt": "CLI `sources` subcommand lists registered sources and whether they are online/offline capable.", "checkpoint": null}
+{"id": 35, "phase": "sources", "prompt": "Catch and log per-source failures without aborting the whole search.", "checkpoint": "sources"}
+{"id": 36, "phase": "summary", "prompt": "Add jobs_aggregator/summarize.py with summarize_job(job, mode=heuristic|llm) -> str.\nHeuristic: first 400 chars of description cleaned + title/company one-liner.", "checkpoint": null}
+{"id": 37, "phase": "summary", "prompt": "Add Ollama-based LLM summarizer: POST to local Ollama /api/generate with a short prompt asking for\n3-bullet contractor-focused summary (rate, stack, remote/B2B signals). Env JOBS_OLLAMA_URL / JOBS_OLLAMA_MODEL.\nIf Ollama down, fall back to heuristic.", "checkpoint": null}
+{"id": 38, "phase": "summary", "prompt": "CLI --summarize heuristic|llm|off (default heuristic). Store result in Job.summary.", "checkpoint": null}
+{"id": 39, "phase": "summary", "prompt": "Summaries must include: role one-liner, key skills/languages, compensation if present, application link domain.", "checkpoint": null}
+{"id": 40, "phase": "summary", "prompt": "Add batch summarize for a results file: CLI `summarize --input .jobs_cache/results.jsonl --mode heuristic`.", "checkpoint": null}
+{"id": 41, "phase": "summary", "prompt": "tests/test_summarize.py: heuristic summary non-empty for sample jobs; llm path mocked/skipped if no ollama.", "checkpoint": null}
+{"id": 42, "phase": "summary", "prompt": "Markdown report writer: jobs_aggregator/report.py render_markdown(jobs) with title, company, summary, url,\nemployment_type, languages, rate, is_open.", "checkpoint": null}
+{"id": 43, "phase": "summary", "prompt": "CLI `search --format markdown` writes report to stdout or --out report.md.", "checkpoint": null}
+{"id": 44, "phase": "summary", "prompt": "JSON output: --format json emits array of Job as dicts (include summary and url).", "checkpoint": null}
+{"id": 45, "phase": "summary", "prompt": "Add --sort rate_desc|posted|title for report ordering.", "checkpoint": "summary"}
+{"id": 46, "phase": "opencheck", "prompt": "Add jobs_aggregator/opencheck.py: check_job_open(job) -> (is_open, notes).\nHTTP GET/HEAD url; treat 404/410/gone as closed; 200 + closed phrases as closed; timeouts as unknown.", "checkpoint": null}
+{"id": 47, "phase": "opencheck", "prompt": "Closed phrase heuristics (case-insensitive): 'no longer accepting', 'position filled', 'job closed',\n'applications closed', 'this job is no longer available', 'page not found'.", "checkpoint": null}
+{"id": 48, "phase": "opencheck", "prompt": "Follow redirects; if final URL looks like a login wall or homepage fallback, mark unknown with notes.", "checkpoint": null}
+{"id": 49, "phase": "opencheck", "prompt": "CLI `verify` subcommand: read results.jsonl, check each job, update is_open + last_checked_at + notes, rewrite file.", "checkpoint": null}
+{"id": 50, "phase": "opencheck", "prompt": "CLI search --verify-open runs open-check before output and drops closed jobs (keep unknowns unless --strict-open).", "checkpoint": null}
+{"id": 51, "phase": "opencheck", "prompt": "Add --strict-open to exclude is_open is None as well.", "checkpoint": null}
+{"id": 52, "phase": "opencheck", "prompt": "Concurrency: verify with ThreadPoolExecutor max_workers=8 and per-host polite delay.", "checkpoint": null}
+{"id": 53, "phase": "opencheck", "prompt": "tests/test_opencheck.py: phrase detection unit tests without network; optional network test marked skip.", "checkpoint": null}
+{"id": 54, "phase": "opencheck", "prompt": "Dead link handling: connection errors -> is_open=None, notes='unreachable'. Do not crash the batch.", "checkpoint": null}
+{"id": 55, "phase": "opencheck", "prompt": "Add jobs_aggregator/link_quality.py: score urls (https preferred, known job-board hosts boost).\nFilter --min-link-score optional.", "checkpoint": null}
+{"id": 56, "phase": "opencheck", "prompt": "Report section 'Closed / skipped' listing urls dropped by verify.", "checkpoint": null}
+{"id": 57, "phase": "opencheck", "prompt": "Cache open-check results by url for 24h in .jobs_cache/open_checks.json to avoid re-hitting boards.", "checkpoint": "opencheck"}
+{"id": 58, "phase": "polish", "prompt": "End-to-end happy path documented in README:\njobs-agg search --offline --source mock --remote-only --lang python --type contract --rate-min 60 --summarize heuristic --verify-open --format markdown --out /tmp/jobs.md", "checkpoint": null}
+{"id": 59, "phase": "polish", "prompt": "Implement that offline mock path fully so the command above works without network.", "checkpoint": null}
+{"id": 60, "phase": "polish", "prompt": "Add jobs_aggregator/pipeline.py run_search(query, options) used by CLI to keep cli.py thin.", "checkpoint": null}
+{"id": 61, "phase": "polish", "prompt": "Add config file support: .jobs_aggregator.toml or yaml for default langs, rate floor, sources.\nCLI flags override file.", "checkpoint": null}
+{"id": 62, "phase": "polish", "prompt": "B2B focus: add filter --b2b-only heuristic (description mentions b2b, limited company, invoice, corp-to-corp, outside ir35).", "checkpoint": null}
+{"id": 63, "phase": "polish", "prompt": "Add --timezone or --region free-text soft filter matching location/description (not hard country ISO yet).", "checkpoint": null}
+{"id": 64, "phase": "polish", "prompt": "Export CSV via --format csv with columns title,company,url,languages,type,rate_min,rate_max,is_open,summary.", "checkpoint": null}
+{"id": 65, "phase": "polish", "prompt": "Add CONTRIBUTING.md or README section: how to add a new Source subclass.", "checkpoint": null}
+{"id": 66, "phase": "polish", "prompt": "Tighten error messages: if no jobs match, print which filters removed how many (funnel stats).", "checkpoint": null}
+{"id": 67, "phase": "polish", "prompt": "Add tests/test_pipeline_offline.py running mock+filters+heuristic summarize+markdown without network.", "checkpoint": null}
+{"id": 68, "phase": "polish", "prompt": "Ensure python -m unittest discover -s tests -v passes.", "checkpoint": null}
+{"id": 69, "phase": "polish", "prompt": "Add examples/example_queries.md with 5 example contractor queries (PHP remote B2B, Python $100+/hr, etc.).", "checkpoint": null}
+{"id": 70, "phase": "polish", "prompt": "Security: sanitize filenames for --out; never execute job description HTML; strip scripts in HTML-to-text.", "checkpoint": null}
+{"id": 71, "phase": "polish", "prompt": "HTML-to-text helper for descriptions using html.parser or bleach-free stdlib.", "checkpoint": null}
+{"id": 72, "phase": "polish", "prompt": "Final README rewrite: audience = worldwide remote B2B contractors; feature list (filters, summarize, open-check);\nethics; offline demo command; limitations (boards change, LLM optional).", "checkpoint": "e2e"}
+{"id": 73, "phase": "filters", "prompt": "Add --exclude-lang repeatable to exclude languages (e.g. exclude java). Cover in tests.", "checkpoint": null}
+{"id": 74, "phase": "filters", "prompt": "Support daily rate conversion heuristic: if description has £500/day convert approx to hourly (/8) for filtering when --assume-day-rate.", "checkpoint": null}
+{"id": 75, "phase": "sources", "prompt": "Add source health ping: HEAD/GET homepage; `jobs-agg sources --ping` shows ok/fail.", "checkpoint": null}
+{"id": 76, "phase": "sources", "prompt": "Persist last successful fetch timestamp per source in .jobs_cache/source_meta.json.", "checkpoint": null}
+{"id": 77, "phase": "summary", "prompt": "When summarizing, detect and highlight 'equity only' or 'unpaid' as warnings in summary.", "checkpoint": null}
+{"id": 78, "phase": "summary", "prompt": "Truncate LLM prompt description to 2k chars to control latency.", "checkpoint": null}
+{"id": 79, "phase": "opencheck", "prompt": "Add dry-run verify --limit 5 for quick smoke.", "checkpoint": null}
+{"id": 80, "phase": "opencheck", "prompt": "Treat HTTP 401/403 on application pages as unknown (not closed) with notes='auth_wall'.", "checkpoint": null}
+{"id": 81, "phase": "polish", "prompt": "Add --max-age-days filter using posted_at when parseable.", "checkpoint": null}
+{"id": 82, "phase": "polish", "prompt": "Ship a tiny demo shell script scripts/demo_offline.sh running the mock search pipeline.", "checkpoint": null}
+{"id": 83, "phase": "polish", "prompt": "Fix any remaining import errors; ensure package is importable as jobs_aggregator.", "checkpoint": null}
+{"id": 84, "phase": "polish", "prompt": "Add py.typed marker or leave note — keep typing consistent across modules.", "checkpoint": null}
+{"id": 85, "phase": "e2e", "prompt": "Run offline demo end-to-end and write artifacts under .jobs_cache/demo_report.md. Confirm at least 1 open mock job survives filters for python+contract+remote.", "checkpoint": "e2e"}
+{"id": 86, "phase": "polish", "prompt": "Reject invalid CLI combos: --rate-min > --rate-max must exit non-zero with a clear message.\nAdd a tiny test or assert in CLI parse.", "checkpoint": null}
+{"id": 87, "phase": "polish", "prompt": "Empty results path: when filters remove everything, print funnel stats and exit 0 (not a crash).", "checkpoint": null}
+{"id": 88, "phase": "polish", "prompt": "Add jobs_aggregator/__main__.py so `python -m jobs_aggregator` is reliable.", "checkpoint": null}
+{"id": 89, "phase": "sources", "prompt": "Document rate limits and caching behavior for each live source in README.", "checkpoint": null}
+{"id": 90, "phase": "summary", "prompt": "Ensure JSON output is valid UTF-8 and does not embed raw HTML from descriptions.", "checkpoint": null}
+{"id": 91, "phase": "opencheck", "prompt": "Add verify --only-unknown to recheck jobs previously marked is_open=None.", "checkpoint": null}
+{"id": 92, "phase": "filters", "prompt": "Support --type b2b as alias for contract + b2b heuristic combined.", "checkpoint": null}
+{"id": 93, "phase": "polish", "prompt": "Add a doctor subcommand: checks python version, optional ollama reachability, cache dir writable.", "checkpoint": null}
+{"id": 94, "phase": "polish", "prompt": "Pin minimal deps in requirements.txt with comments why each exists.", "checkpoint": null}
+{"id": 95, "phase": "polish", "prompt": "Add .gitignore covering .jobs_cache/, __pycache__/, .venv/, report artifacts.", "checkpoint": null}
+{"id": 96, "phase": "e2e", "prompt": "Final acceptance: offline mock search for remote python contract with rate-min 50 produces markdown\ncontaining at least one http link and a non-empty summary field. Save under .jobs_cache/FINAL_DEMO.md.", "checkpoint": "e2e"}
+{"id": 97, "phase": "polish", "prompt": "Sweep for leftover NotImplementedError / pass stubs in jobs_aggregator public APIs; implement or remove.", "checkpoint": null}
+{"id": 98, "phase": "polish", "prompt": "Ensure all public modules have docstrings describing contractor/B2B purpose in one line.", "checkpoint": null}
+{"id": 99, "phase": "polish", "prompt": "Add CHANGELOG.md with Unreleased section summarizing filters, sources, summarize, opencheck.", "checkpoint": null}
+{"id": 100, "phase": "polish", "prompt": "Version bump to 0.1.0 in pyproject/setup metadata if present.", "checkpoint": null}

@@ -1,0 +1,104 @@
+name: Release macOS
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: Build macOS ${{ matrix.target }}
+    runs-on: ${{ matrix.host }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: macos-14
+            target: aarch64-apple-darwin
+            label: apple-silicon
+          # Optional Intel build (slower). Uncomment when you want universal coverage.
+          # - host: macos-13
+          #   target: x86_64-apple-darwin
+          #   label: intel
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            apps/desktop/src-tauri
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Build desktop + CLI
+        env:
+          # Unsigned preview builds (no Apple Developer ID in CI by default).
+          TAURI_SIGNING_PRIVATE_KEY: ""
+        run: |
+          set -euo pipefail
+          cd apps/desktop
+          npm ci
+          npx tauri build --target "${{ matrix.target }}" --bundles app,dmg
+          cd ../..
+          cargo build -p vibe_core --release --target "${{ matrix.target }}" --bins
+
+          OUT="dist/macos-${{ matrix.label }}"
+          mkdir -p "$OUT/cli"
+          BUNDLE="target/${{ matrix.target }}/release/bundle"
+          find "$BUNDLE" -name '*.dmg' -exec cp {} "$OUT/" \;
+          find "$BUNDLE" -name '*.app' -maxdepth 3 -exec cp -R {} "$OUT/" \; || true
+          for b in vibe_scenario vibe_bench vibe_eval; do
+            cp "target/${{ matrix.target }}/release/$b" "$OUT/cli/" 2>/dev/null || true
+          done
+          cp config.example.toml "$OUT/"
+          {
+            echo "Maqqa ${{ github.ref_name }} (${{ matrix.target }})"
+            echo "Model Augmented Quick Qode Assistant — https://maqqa.dev"
+            echo "Unsigned macOS preview — requires Ollama."
+            echo 'First launch: right-click app → Open, or: xattr -cr "Maqqa.app"'
+          } > "$OUT/README.txt"
+          (
+            cd "$OUT"
+            tar -czf "maqqa-cli-${{ matrix.target }}.tar.gz" cli config.example.toml README.txt
+            # Zip .app for GitHub Releases (dmg uploaded separately)
+            if ls *.app >/dev/null 2>&1; then
+              ditto -c -k --sequesterRsrc --keepParent *.app "Maqqa-${{ matrix.label }}.app.zip"
+            fi
+          )
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+          ls -lah "$OUT"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: maqqa-macos-${{ matrix.label }}
+          path: dist/macos-${{ matrix.label }}/*
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            dist/macos-${{ matrix.label }}/*.dmg
+            dist/macos-${{ matrix.label }}/*.zip
+            dist/macos-${{ matrix.label }}/*.tar.gz
+            dist/macos-${{ matrix.label }}/README.txt
+            dist/macos-${{ matrix.label }}/config.example.toml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

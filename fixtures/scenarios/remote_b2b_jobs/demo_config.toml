@@ -1,0 +1,15 @@
+# Fast local models for UI demo / video (override via VIBE_CONFIG=…)
+ollama_url = "http://127.0.0.1:11434"
+ghost_model = "qwen3:4b-instruct"
+reason_model = "qwen3:4b-instruct"
+reason_model_fallback = "qwen3:4b-instruct"
+debug_model = ""
+embed_model = "nomic-embed-text"
+heal_max_attempts = 2
+ghost_context_tokens = 4000
+reason_context_tokens = 8000
+architecture_context_tokens = 12000
+ghost_debounce_ms = 80
+index_top_k = 8
+agent_max_turns = 4
+ollama_generate_retries = 2

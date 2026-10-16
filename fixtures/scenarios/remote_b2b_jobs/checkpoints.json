@@ -1,0 +1,63 @@
+{
+  "scaffold": {
+    "description": "Package layout + CLI help",
+    "checks": [
+      "path:jobs_aggregator/__init__.py",
+      "path:jobs_aggregator/cli.py",
+      "path:jobs_aggregator/models.py",
+      "path:README.md",
+      "has_tests:1",
+      "run:python3 -m jobs_aggregator -h"
+    ]
+  },
+  "filters": {
+    "description": "CLI filters + filter module + tests",
+    "checks": [
+      "path:jobs_aggregator/filters.py",
+      "path:tests/test_filters.py",
+      "has_tests:1",
+      "help_contains:rate",
+      "help_contains:remote",
+      "run:python3 -m unittest discover -s tests -p 'test_filters.py' -v"
+    ]
+  },
+  "sources": {
+    "description": "Sources + aggregator + mock offline path",
+    "checks": [
+      "path:jobs_aggregator/sources/__init__.py",
+      "path:jobs_aggregator/aggregator.py",
+      "path_glob:jobs_aggregator/sources/*.py",
+      "has_tests:1",
+      "help_contains:search",
+      "run:python3 -m unittest discover -s tests -p 'test_*.py' -v"
+    ]
+  },
+  "summary": {
+    "description": "Summarize + report formats",
+    "checks": [
+      "path:jobs_aggregator/summarize.py",
+      "path:jobs_aggregator/report.py",
+      "file_contains:jobs_aggregator/summarize.py:summarize",
+      "file_contains:jobs_aggregator/report.py:markdown",
+      "has_tests:1"
+    ]
+  },
+  "opencheck": {
+    "description": "Open/freshness verification",
+    "checks": [
+      "path:jobs_aggregator/opencheck.py",
+      "has_tests:1",
+      "help_contains:verify",
+      "run:python3 -c \"import jobs_aggregator.opencheck as o; assert hasattr(o, '__file__')\""
+    ]
+  },
+  "e2e": {
+    "description": "Offline mock search pipeline works",
+    "checks": [
+      "path:jobs_aggregator/pipeline.py",
+      "has_tests:1",
+      "run:python3 -m jobs_aggregator -h",
+      "run:python3 -m unittest discover -s tests -v"
+    ]
+  }
+}

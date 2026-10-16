@@ -1,0 +1,40 @@
+# Copy to ~/.vibe/config.toml and adjust tags to match `ollama list`.
+
+ollama_url = "http://127.0.0.1:11434"
+
+# Fast inline completions
+ghost_model = "qwen2.5-coder:7b-instruct-q4_K_M"
+
+# Agent / Cmd+K / heal — pick what fits your machine
+reason_model = "Qwen2.5-Coder:14b-instruct-q4_K_M"
+reason_model_fallback = "qwen2.5-coder:7b-instruct-q4_K_M"
+
+# Optional: diagnose failures only (e.g. deepseek-r1:14b). Empty = disabled.
+debug_model = ""
+
+embed_model = "nomic-embed-text"
+
+heal_max_attempts = 3
+ghost_context_tokens = 4000
+reason_context_tokens = 12000
+architecture_context_tokens = 24000
+ghost_debounce_ms = 80
+index_top_k = 8
+agent_max_turns = 6
+ollama_generate_retries = 3
+
+# Cap Ollama KV window (0 = use reason_context_tokens)
+ollama_num_ctx = 14000
+
+# auto | small | default
+# small → small playbook + heal A/B on
+# auto  → small playbook if reason_model ≤10B; heal A/B if reason_model <20B
+# default → large playbook; heal A/B off unless ollama_heal_ab = true
+agent_profile = "auto"
+
+ollama_temperature = 0.2
+# Optional cooler heal temp (default 0.05 when A/B is on and this is omitted)
+# ollama_heal_temperature = 0.05
+# Force heal A/B on/off (omit to follow agent_profile / size)
+# ollama_heal_ab = true
+# ollama_heal_ab = false

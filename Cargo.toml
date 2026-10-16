@@ -1,0 +1,52 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/vibe_ipc",
+    "crates/vibe_core",
+    "apps/desktop/src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/maqqa-experience/maqqa"
+homepage = "https://maqqa.dev"
+description = "Maqqa — Model Augmented Quick Qode Assistant (local-first Tauri + Ollama)"
+readme = "README.md"
+
+[workspace.dependencies]
+vibe_ipc = { path = "crates/vibe_ipc" }
+vibe_core = { path = "crates/vibe_core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+thiserror = "2"
+anyhow = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+futures = "0.3"
+toml = "0.8"
+dirs = "6"
+walkdir = "2"
+ignore = "0.4"
+notify = "7"
+notify-debouncer-mini = "0.5"
+similar = "2"
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+async-trait = "0.1"
+bytes = "1"
+parking_lot = "0.12"
+dashmap = "6"
+regex = "1"
+tempfile = "3"
+flate2 = "1"
+tree-sitter = "0.24"
+tree-sitter-rust = "0.23"
+tree-sitter-python = "0.23"
+tree-sitter-javascript = "0.23"
+tree-sitter-typescript = "0.23"
+tree-sitter-go = "0.23"
+tree-sitter-java = "0.23"

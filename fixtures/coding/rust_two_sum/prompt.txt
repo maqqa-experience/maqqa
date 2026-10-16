@@ -1,0 +1,6 @@
+Implement `two_sum` in src/lib.rs.
+
+Given a slice of i32 values and a target, return the two indices whose values sum to target.
+Assume exactly one solution exists. Indices may be returned in either order.
+
+Make `cargo test` pass. Do not remove existing tests.

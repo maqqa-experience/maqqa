@@ -1,0 +1,33 @@
+/target
+**/target
+**/node_modules
+**/dist
+/dist/
+apps/desktop/dist/
+.DS_Store
+.vibe/
+**/.vibe/
+apps/desktop/src-tauri/gen
+*.log
+.idea
+.vscode
+.env
+.env.*
+!.env.example
+!apps/desktop/package-lock.json
+
+# Local scenario / bench outputs (regenerate anytime)
+artifacts/
+!artifacts/README.md
+demos/*.mp4
+demos/*.png
+!demos/.gitkeep
+!demos/README.md
+
+# Upstream clone (regenerate slim corpus via scripts/import_leetcode.py)
+third_party/LeetCodeDataset/
+
+# Editor / OS
+*.swp
+*~
+.cargo-cache/

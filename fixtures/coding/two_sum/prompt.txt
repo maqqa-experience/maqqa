@@ -1,0 +1,8 @@
+Implement `two_sum` in solution.py.
+
+Given an array of integers `nums` and an integer `target`, return the indices of the two numbers that add up to `target`.
+You may assume exactly one solution, and you may not use the same element twice.
+Return the answer in any order.
+
+Do not change the function signature. Make `python3 -m unittest test_solution -v` pass.
+Keep the solution in solution.py only (you may add helper functions in the same file).
