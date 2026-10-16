@@ -14,11 +14,13 @@
 
 **Model Augmented Quick Qode Assistant** — local-first AI code editor: Tauri + Monaco UI, Rust agent engine, [Ollama](https://ollama.com) inference, Tree-sitter indexing, shadow-workspace self-heal.
 
-> **Status:** experimental `0.0.x` preview. Research / local-agent playground (macOS primary; Linux/Windows builds via Releases). **Not** a drop-in Cursor or Bolt replacement. See [`docs/STATUS.md`](docs/STATUS.md).
+> **Status:** experimental `0.0.x` preview. Research / local-agent playground (macOS primary; Linux/Windows builds via Releases). Agent harness is **Python-first**; other languages untested. **Not** a drop-in Cursor or Bolt replacement. See [`docs/STATUS.md`](docs/STATUS.md).
 
 ## What Maqqa is (and isn’t)
 
 **Maqqa is** a **local agent harness** for Ollama coder models (especially Qwen Coder **14B** on 16GB and **30B** on ~24GB). Goal: modest **vibe / agent coding** from an empty or small workspace — multi-file edits that get **checked before Accept** — without the usual local-agent failure modes (tool-call spam, cloud-sized prompts, no verify loop, code that doesn’t compile).
+
+**Language focus: Python.** The agentic loop, CLI gates, checkpoints, and scenario benches are **customised and validated for Python** (packages, `python -m … -h`, pytest-style trees). Other languages may parse in the editor / Tree-sitter index, but **we have not meaningfully tested the agent harness outside Python** — treat Rust/JS/etc. as experimental or unsupported for agent runs.
 
 **Maqqa is not** offline Lovable / Bolt / v0. Those are cloud sandboxes + frontier models. A local 14B will not match “one prompt → full production app with live preview.” Same ceiling as every other local 14B stack for that category.
 
@@ -27,7 +29,8 @@
 | Bar | Expect |
 |-----|--------|
 | Prompt → deployable full-stack app like Bolt | No — use cloud vibe tools |
-| Local 14B agent that is less broken than cloud-harness-on-Ollama | Yes — that’s the point |
+| Local 14B agent that is less broken than cloud-harness-on-Ollama | Yes — that’s the point (**Python**) |
+| Agent quality on Rust / JS / Go / … | Untested — don’t expect the same heal/CLI gates |
 | 16GB laptop | Yes — **14B reason only**, `ghost_model = ""`, capped `ollama_num_ctx` |
 | 24GB+ | Comfortable **30B** reason (+ optional ghost / embed) |
 

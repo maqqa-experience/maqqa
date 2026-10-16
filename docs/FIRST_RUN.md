@@ -45,7 +45,7 @@ npm run tauri dev
 
 Linux needs WebKitGTK and related packages first — see **Building → Linux** in the README. Windows needs MSVC Build Tools + WebView2.
 
-1. Open a project folder  
+1. Open a **Python** project folder (agent gates/heals are tuned for Python)  
 2. Wait for status `index: N chunks`  
 3. Try ghost completions while typing (if `ghost_model` is set)  
 4. Use **Cmd+K** / agent edit; **Accept** only after the shadow heal looks right  

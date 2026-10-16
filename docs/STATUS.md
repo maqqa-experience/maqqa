@@ -3,9 +3,10 @@
 **Product:** [Maqqa](https://maqqa.dev) — Model Augmented Quick Qode Assistant  
 **Stage:** public preview / research prototype (`0.0.x`)  
 **Platform focus:** macOS Apple Silicon + local [Ollama](https://ollama.com); Linux/Windows via Releases  
-**Is:** local agent harness for modest vibe/agent coding (shadow heal, capped context)  
+**Is:** local agent harness for modest vibe/agent coding (shadow heal, capped context), **customised for Python**  
 **Is not:** offline Bolt/Lovable, or “Cursor prompts pointed at Ollama”  
-**Not yet:** polished IDE parity or cloud backend
+**Languages:** Python validated (scenarios, CLI gates, heals). Other languages: editor/index may work; **agent loop untested**  
+**Not yet:** polished IDE parity, multi-language agent gates, or cloud backend
 
 ## What works today
 
