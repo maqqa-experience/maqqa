@@ -175,7 +175,24 @@ Tree-sitter chunks → Ollama embeddings → cosine ANN under `{workspace}/.vibe
 
 Agent runs can edit files and execute verify commands in the workspace. See [`SECURITY.md`](SECURITY.md).
 
-## macOS binary
+## Building
+
+Prerequisites on all platforms: **Rust stable**, **Node 20+**, and a local [Ollama](https://ollama.com) for inference (not bundled). Dev:
+
+```bash
+cd apps/desktop && npm install && npm run tauri dev
+```
+
+CLI tools (any OS):
+
+```bash
+cargo build -p vibe_core --release --bins
+# → target/release/vibe_scenario, vibe_bench, vibe_eval
+```
+
+Tagging `v*.*.*` runs GitHub Actions that attach **macOS** (Apple Silicon), **Linux** (`.AppImage` / `.deb`), and **Windows** (`.msi` / NSIS) artifacts to a **draft** release. You can also run the workflows manually from the Actions tab. Local recipes below are useful for debugging.
+
+### macOS
 
 ```bash
 ./scripts/build_macos_release.sh              # host arch (arm64 or Intel)
@@ -183,7 +200,56 @@ Agent runs can edit files and execute verify commands in the workspace. See [`SE
 # → dist/macos/  (.app, .dmg, cli tarball)
 ```
 
-Universal builds use Tauri’s `universal-apple-darwin` target (compiles both slices, then `lipo`). Tagging `v*.*.*` on GitHub currently ships **Apple Silicon**; extend `release-macos.yml` for Intel/universal if you want CI coverage. Requires Ollama separately. Gatekeeper: right-click → Open, or `xattr -cr "Maqqa.app"`.
+Universal builds use Tauri’s `universal-apple-darwin` target (`lipo`). Unsigned preview: right-click → Open, or `xattr -cr "Maqqa.app"`.
+
+### Linux
+
+Install Tauri/webkit system deps (Debian/Ubuntu example):
+
+```bash
+sudo apt update
+sudo apt install -y \
+  libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev \
+  patchelf libssl-dev libgtk-3-dev libsoup-3.0-dev
+```
+
+See [Tauri Linux prerequisites](https://v2.tauri.app/start/prerequisites/#linux) for Fedora/Arch packages.
+
+```bash
+cd apps/desktop
+npm ci
+# AppImage + .deb (omit bundles you do not need)
+npx tauri build --bundles appimage,deb
+# artifacts under:
+#   src-tauri/target/release/bundle/appimage/
+#   src-tauri/target/release/bundle/deb/
+```
+
+Also build the CLIs with `cargo build -p vibe_core --release --bins` from the repo root. Config path is still `~/.vibe/config.toml`.
+
+### Windows
+
+1. Install [Build Tools for Visual Studio](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (C++ workload) and the [WebView2 runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (usually present on Win10/11).
+2. Install Rust (`rustup`) and Node 20+.
+
+In **PowerShell** or **Developer Command Prompt**:
+
+```powershell
+cd apps\desktop
+npm ci
+npx tauri build --bundles msi,nsis
+# artifacts under:
+#   src-tauri\target\release\bundle\msi\
+#   src-tauri\target\release\bundle\nsis\
+```
+
+CLIs:
+
+```powershell
+cargo build -p vibe_core --release --bins
+```
+
+User config: `%USERPROFILE%\.vibe\config.toml` (same keys as `config.example.toml`).
 
 ## License
 

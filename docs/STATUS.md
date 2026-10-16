@@ -22,7 +22,7 @@
 - Desktop UX is minimal (no full IDE feature parity).
 - Quality depends heavily on the reason model and prompts.
 - Large default model tags in older docs may not fit every machine — use whatever you pulled.
-- Linux/Windows desktop packaging is unproven; CI validates Rust core + frontend build only.
+- Tag releases (`v*.*.*`) build macOS + Linux + Windows installers via Actions (draft release). PR CI still validates Rust core + frontend only.
 - Agent implementation is concentrated in a large `agent.rs` (refactors welcome).
 
 ## Suggested hardware

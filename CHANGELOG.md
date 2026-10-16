@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - macOS binary packaging: `scripts/build_macos_release.sh` (`.app` / `.dmg` + CLI tarball) and GitHub Actions `Release macOS` on `v*.*.*` tags (unsigned draft).
+- GitHub Actions `Release Linux / Windows`: AppImage/`.deb` and MSI/NSIS on `v*.*.*` tags (draft).
 - Checkpoint-heal **temperature A/B**: run base vs cooler heal temp from the same snapshot and keep the winner before a step is DONE.
 - Config: `ollama_temperature`, `ollama_heal_temperature`, `ollama_heal_ab` (optional override).
 - Auto heal A/B: follows `agent_profile` (`small` → on, `default`/`large` → off, `auto` → reason model &lt;20B by tag).

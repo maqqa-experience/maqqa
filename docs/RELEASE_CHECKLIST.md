@@ -28,7 +28,7 @@ Local (Apple Silicon or Intel host):
 # → dist/macos/*.dmg, *.app, maqqa-cli-*.tar.gz
 ```
 
-CI: push a version tag; workflow `Release macOS` builds an **unsigned** `.dmg` + CLI tarball and opens a **draft** GitHub Release.
+CI: push a version tag; workflows `Release macOS` and `Release Linux / Windows` attach installers + CLI tarballs to a **draft** GitHub Release.
 
 ```bash
 git tag -a v0.1.0 -m "v0.1.0 preview"
