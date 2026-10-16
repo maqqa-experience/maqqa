@@ -11,8 +11,9 @@ Pull at least:
 
 ```bash
 ollama pull nomic-embed-text
-ollama pull qwen2.5-coder:7b-instruct-q4_K_M          # ghost
 ollama pull Qwen2.5-Coder:14b-instruct-q4_K_M         # reason (example)
+# optional ghost (skip on 16GB — set ghost_model = "" instead):
+# ollama pull qwen2.5-coder:7b-instruct-q4_K_M
 ```
 
 Use any instruct/coder tags that fit your RAM — then point config at those exact names from `ollama list`.

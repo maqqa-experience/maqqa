@@ -128,6 +128,12 @@ impl Default for VibeConfig {
 }
 
 impl VibeConfig {
+    /// Inline ghost completions. Empty `ghost_model` disables them (saves RAM / avoids
+    /// slow 14B+ completions while typing).
+    pub fn ghost_enabled(&self) -> bool {
+        !self.ghost_model.trim().is_empty()
+    }
+
     /// Whether heal A/B is wanted (manual override, else agent_profile / size).
     pub fn heal_ab_wanted(&self) -> bool {
         if let Some(v) = self.ollama_heal_ab {
@@ -283,5 +289,15 @@ mod tests {
         assert!(!infer_heal_ab_model("qwen3-coder:30b"));
         assert!(!infer_heal_ab_model("llama3.3:70b"));
         assert!(!infer_heal_ab_model("qwen3-coder-next:q4_K_M"));
+    }
+
+    #[test]
+    fn ghost_disabled_when_empty() {
+        let mut cfg = VibeConfig::default();
+        assert!(cfg.ghost_enabled());
+        cfg.ghost_model = String::new();
+        assert!(!cfg.ghost_enabled());
+        cfg.ghost_model = "   ".into();
+        assert!(!cfg.ghost_enabled());
     }
 }

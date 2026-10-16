@@ -49,14 +49,18 @@ async fn main() -> ExitCode {
     }
 
     let reason = ollama.resolve_reason_model(&cfg).await;
-    println!("ghost={}", cfg.ghost_model);
+    if cfg.ghost_enabled() {
+        println!("ghost={}", cfg.ghost_model);
+    } else {
+        println!("ghost=off");
+    }
     println!("reason={reason}");
 
-    println!("warming dual models…");
+    println!("warming models…");
     match ollama.warm_dual(&cfg.ghost_model, &reason).await {
-        Ok(()) => println!("smoke: dual generate OK"),
+        Ok(()) => println!("smoke: generate OK"),
         Err(e) => {
-            eprintln!("smoke warm failed (is ghost model pulled?): {e}");
+            eprintln!("smoke warm failed (is reason/ghost model pulled?): {e}");
             if smoke_only {
                 return ExitCode::FAILURE;
             }

@@ -4,7 +4,7 @@ export function applyStatus(st: StatusResponse): void {
   const ollamaEl = document.getElementById("st-ollama")!;
   ollamaEl.innerHTML = `<span class="dot ${st.ollama_ok ? "ok" : "bad"}"></span>ollama`;
   document.getElementById("st-models")!.textContent =
-    `ghost=${st.ghost_model} · reason=${st.reason_model}`;
+    `ghost=${st.ghost_model || "off"} · reason=${st.reason_model}`;
   document.getElementById("st-index")!.textContent =
     `index: ${st.index_chunks} chunks${st.index_ready ? "" : " (warming)"}`;
   document.getElementById("st-heal")!.textContent = st.last_heal

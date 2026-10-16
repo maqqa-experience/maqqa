@@ -378,8 +378,15 @@ impl OllamaClient {
         Ok(res.embedding)
     }
 
-    /// Warm both models concurrently (smoke / keep-resident).
+    /// Warm ghost + reason concurrently (smoke / keep-resident).
+    /// Empty `ghost` skips ghost warm (ghost completions disabled).
     pub async fn warm_dual(&self, ghost: &str, reason: &str) -> Result<()> {
+        if ghost.trim().is_empty() {
+            self.generate(reason, "reply with ok", Some(8))
+                .await
+                .context("warm reason")?;
+            return Ok(());
+        }
         let a = self.generate(ghost, "reply with ok", Some(8));
         let b = self.generate(reason, "reply with ok", Some(8));
         let (ra, rb) = tokio::join!(a, b);

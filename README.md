@@ -16,6 +16,12 @@
 
 > **Status:** experimental `0.1.x` preview. Useful as a research / local-agent playground on Apple Silicon. **Not** a drop-in Cursor replacement. See [`docs/STATUS.md`](docs/STATUS.md).
 
+## Why this exists
+
+Most agent harnesses are tuned for frontier cloud models. Point the same loops at a **local** coder (even on high-spec Apple Silicon / lots of RAM) and quality drops hard: brittle multi-file edits, weak self-correction, and prompts that assume GPT/Claude-class reasoning.
+
+Maqqa started as a place to close that gap — a harness built **around** local Ollama models instead of treating them as a drop-in backend. Dual ghost/reason tiers, shadow-workspace heals, checkpoint repair (including temperature A/B on smaller models), and scenario benches exist so local agents can be measured and improved, not just demoed once on a 70B+ API.
+
 ## Features
 
 - **Ghost completions** — small/fast Ollama model for inline suggestions  
@@ -41,6 +47,15 @@ crates/vibe_ipc       shared IPC types
 | Ghost | Inline completions | `qwen2.5-coder:7b-instruct-q4_K_M` / `q8_0` |
 | Reason | Cmd+K / agent / heal | `Qwen2.5-Coder:14b-instruct-q4_K_M`, `qwen3-coder:30b`, … |
 | Embed | RAG | `nomic-embed-text` |
+
+### Recommended hardware
+
+| Machine | Reason model (Ollama) |
+|---------|------------------------|
+| MacBook Pro **16GB** RAM | Qwen Coder **14B** (e.g. `Qwen2.5-Coder:14b-instruct-q4_K_M`) |
+| Mac mini **24GB** RAM | Qwen Coder **30B** (e.g. `qwen3-coder:30b`) |
+
+Optional ghost (7B-class) + `nomic-embed-text`. **If RAM is tight, disable ghost** — set `ghost_model = ""` so inline completions stay off. Do **not** point ghost at a 14B+ reason model; that makes typing sluggish. Agent / Cmd+K still use `reason_model`. Enable heal temperature A/B on the 14B path (`agent_profile = "small"` / `auto`, or `ollama_heal_ab = true`).
 
 Latency targets (aspirational on strong Apple Silicon): ghost first-token p95 **&lt;100ms**; UI paint after token **&lt;30ms**.
 
@@ -145,7 +160,7 @@ Copy [`config.example.toml`](config.example.toml) → `~/.vibe/config.toml`.
 
 | Key | Meaning |
 |-----|---------|
-| `reason_model` / `ghost_model` | Ollama tags |
+| `reason_model` / `ghost_model` | Ollama tags; empty `ghost_model` disables inline completions |
 | `ollama_num_ctx` | Cap generate context / KV |
 | `ollama_temperature` | Default sampling |
 | `ollama_heal_temperature` | Cooler (or hotter) heal temp |

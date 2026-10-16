@@ -119,6 +119,13 @@ impl Engine {
     }
 
     pub async fn get_completions(&self, req: CompletionRequest) -> Result<CompletionResponse> {
+        if !self.cfg.ghost_enabled() {
+            return Ok(CompletionResponse {
+                request_id: req.request_id,
+                text: String::new(),
+                cancelled: false,
+            });
+        }
         self.refresh_index().await;
         let context = self
             .retrieve_context(&req.prefix, Some(&req.path), self.cfg.ghost_context_tokens)
@@ -235,7 +242,11 @@ impl Engine {
                 .workspace_path()
                 .await
                 .map(|p| p.to_string_lossy().to_string()),
-            ghost_model: self.cfg.ghost_model.clone(),
+            ghost_model: if self.cfg.ghost_enabled() {
+                self.cfg.ghost_model.clone()
+            } else {
+                String::new()
+            },
             reason_model: self.reason_model.clone(),
             index_chunks,
             index_ready,

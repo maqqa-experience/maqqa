@@ -2,12 +2,14 @@
 
 ollama_url = "http://127.0.0.1:11434"
 
-# Fast inline completions
+# Fast inline completions. Empty = disabled (recommended on 16GB when reason is 14B —
+# using the reason model for ghost makes typing sluggish).
 ghost_model = "qwen2.5-coder:7b-instruct-q4_K_M"
+# ghost_model = ""
 
 # Agent / Cmd+K / heal — pick what fits your machine
 reason_model = "Qwen2.5-Coder:14b-instruct-q4_K_M"
-reason_model_fallback = "qwen2.5-coder:7b-instruct-q4_K_M"
+reason_model_fallback = "Qwen2.5-Coder:14b-instruct-q4_K_M"
 
 # Optional: diagnose failures only (e.g. deepseek-r1:14b). Empty = disabled.
 debug_model = ""

@@ -27,10 +27,11 @@
 
 ## Suggested hardware
 
-| RAM | Practical reason models |
-|-----|-------------------------|
-| ~16–32GB | 7B–14B instruct/coder (Q4) |
-| ~64GB | 30B-class coder |
-| ~96GB+ | 70B+ or denser quants (as in original Studio target) |
+| Machine / RAM | Practical reason model |
+|---------------|------------------------|
+| MacBook Pro **16GB** | Qwen Coder **14B** (Q4 instruct) |
+| Mac mini **24GB** | Qwen Coder **30B** |
+| ~64GB+ | denser 30B / larger quants |
+| ~96GB+ | 70B+ (as in original Studio target) |
 
 Heal temperature A/B defaults on for `agent_profile = "small"` or `auto` with reason model **&lt;20B** (override with `ollama_heal_ab`).
