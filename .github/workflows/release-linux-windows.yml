@@ -1,0 +1,143 @@
+name: Release Linux / Windows
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.host }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - host: ubuntu-24.04
+            label: linux-x64
+            bundles: appimage,deb
+          - host: windows-latest
+            label: windows-x64
+            bundles: msi,nsis
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux deps (WebKitGTK 4.1)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libsoup-3.0-dev \
+            patchelf \
+            libssl-dev
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            apps/desktop/src-tauri
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Build desktop + CLI (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          cd apps/desktop
+          npm ci
+          npx tauri build --bundles "${{ matrix.bundles }}"
+          cd ../..
+          cargo build -p vibe_core --release --bins
+
+          OUT="dist/${{ matrix.label }}"
+          mkdir -p "$OUT/cli"
+          BUNDLE="target/release/bundle"
+          # Prefer workspace target; fall back to crate-local target
+          if [[ ! -d "$BUNDLE" ]]; then
+            BUNDLE="apps/desktop/src-tauri/target/release/bundle"
+          fi
+          find "$BUNDLE" -type f \( -name '*.AppImage' -o -name '*.deb' -o -name '*.rpm' \) -exec cp {} "$OUT/" \;
+          for b in vibe_scenario vibe_bench vibe_eval; do
+            cp "target/release/$b" "$OUT/cli/" 2>/dev/null || true
+          done
+          cp config.example.toml "$OUT/"
+          {
+            echo "Maqqa ${{ github.ref_name }} (${{ matrix.label }})"
+            echo "Model Augmented Quick Qode Assistant — https://maqqa.dev"
+            echo "Linux preview — requires Ollama running locally."
+            echo "Install .deb or make the AppImage executable: chmod +x Maqqa_*.AppImage"
+          } > "$OUT/README.txt"
+          (
+            cd "$OUT"
+            tar -czf "maqqa-cli-${{ matrix.label }}.tar.gz" cli config.example.toml README.txt
+          )
+          ls -lah "$OUT"
+
+      - name: Build desktop + CLI (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+          Set-Location apps/desktop
+          npm ci
+          npx tauri build --bundles ${{ matrix.bundles }}
+          Set-Location ../..
+          cargo build -p vibe_core --release --bins
+
+          $Out = "dist/${{ matrix.label }}"
+          New-Item -ItemType Directory -Force -Path "$Out/cli" | Out-Null
+          $Bundle = "target/release/bundle"
+          if (-not (Test-Path $Bundle)) {
+            $Bundle = "apps/desktop/src-tauri/target/release/bundle"
+          }
+          Get-ChildItem -Path $Bundle -Recurse -Include *.msi,*.exe |
+            Where-Object { $_.FullName -match '\\(msi|nsis)\\' } |
+            ForEach-Object { Copy-Item $_.FullName $Out }
+          foreach ($b in @("vibe_scenario","vibe_bench","vibe_eval")) {
+            $src = "target/release/$b.exe"
+            if (Test-Path $src) { Copy-Item $src "$Out/cli/" }
+          }
+          Copy-Item config.example.toml $Out
+          @"
+          Maqqa ${{ github.ref_name }} (${{ matrix.label }})
+          Model Augmented Quick Qode Assistant — https://maqqa.dev
+          Windows preview — requires Ollama running locally.
+          Install via .msi or the NSIS setup .exe. Config: %USERPROFILE%\.vibe\config.toml
+          "@ | Set-Content -Path "$Out/README.txt" -Encoding utf8
+          Push-Location $Out
+          tar -czf "maqqa-cli-${{ matrix.label }}.tar.gz" cli config.example.toml README.txt
+          Pop-Location
+          Get-ChildItem $Out
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: maqqa-${{ matrix.label }}
+          path: dist/${{ matrix.label }}/*
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            dist/${{ matrix.label }}/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

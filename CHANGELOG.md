@@ -7,28 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-10-16
+
 ### Added
 
-- macOS binary packaging: `scripts/build_macos_release.sh` (`.app` / `.dmg` + CLI tarball) and GitHub Actions `Release macOS` on `v*.*.*` tags (unsigned draft).
 - GitHub Actions `Release Linux / Windows`: AppImage/`.deb` and MSI/NSIS on `v*.*.*` tags (draft).
-- Checkpoint-heal **temperature A/B**: run base vs cooler heal temp from the same snapshot and keep the winner before a step is DONE.
-- Config: `ollama_temperature`, `ollama_heal_temperature`, `ollama_heal_ab` (optional override).
-- Auto heal A/B: follows `agent_profile` (`small` → on, `default`/`large` → off, `auto` → reason model &lt;20B by tag).
-- Default cool heal temp `0.05` when A/B is on and heal temp is unset.
-- `ollama_num_ctx` to cap Ollama KV / context window.
-- Multi-prompt `vibe_scenario` runner and remote B2B jobs fixture scenario.
-- Coding bench (`vibe_bench`) with hand fixtures + optional LeetCodeDataset import.
+- README: why Maqqa exists; hardware recs; Linux/Windows build docs; disable ghost with empty `ghost_model`.
 
 ### Changed
 
-- Rebranded product to **Maqqa** (Model Augmented Quick Qode Assistant); app bundle `Maqqa.app`, identifier `dev.maqqa.app`.
-- Replaced solid-green placeholder icons with a Maqqa “M” mark (Dock / `.icns` / `.ico`).
-- Diagnose-apply auto-clobber removed from the agent heal path (safer apply policy).
+- Empty `ghost_model` disables inline completions (avoids sluggish 14B+ ghost on tight RAM).
+- Package version aligned to `0.0.2`.
 
-## [0.1.0] - 2026-10-16
+## [0.0.1] - 2026-10-16
 
 ### Added
 
-- Initial public preview: Tauri + Monaco desktop shell, Rust `vibe_core` engine,
-  Ollama dual-model ghost/reason path, Tree-sitter index, shadow-workspace heal,
-  MCP-style local tools, docs and example config.
+- Initial public preview: Tauri + Monaco desktop, Rust `vibe_core`, Ollama dual-model path,
+  Tree-sitter index, shadow heal, scenario/bench CLIs, docs, Maqqa branding + icons.
+- macOS packaging (`build_macos_release.sh`) + `Release macOS` Actions on tags.
+- Checkpoint-heal temperature A/B, `ollama_num_ctx`, agent profile auto/small/default.
